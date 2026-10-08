@@ -1,4 +1,4 @@
-# CatatDuit PWA
+# CatatDuit PWA — V1.1
 
 Aplikasi pencatat keuangan pribadi berbasis Progressive Web App (PWA).
 
@@ -24,3 +24,7 @@ Lalu buka `http://localhost:8080/`.
 ## Deploy
 
 Project ini siap dideploy ke hosting HTTPS seperti GitHub Pages.
+
+
+## V1.1
+Pembaruan ini berfokus pada perapian layout dan navigasi tanpa mengubah konsep fitur utama. Ditambahkan akses cepat, navigasi bawah, pencarian/filter riwayat, dan penyusunan ulang ringkasan agar lebih mudah dipakai di HP.
