@@ -1,0 +1,101 @@
+# Membuat APK CatatDuit Hanya dari HP (Tanpa Laptop)
+
+Idenya: kamu mengunggah 8 file ke GitHub lewat browser HP, lalu server GitHub yang membuat APK-nya (gratis). Setelah itu kamu tinggal mengunduh dan memasang APK-nya.
+
+> Aku belum bisa menguji build ini langsung. Kalau build gagal (tanda ❌ merah), kirim pesan error-nya ke aku dan kita perbaiki bersama.
+
+## Langkah 1. Buat akun GitHub
+
+Buka **github.com** di browser HP, lalu **Sign up**. Gratis, cukup email.
+
+## Langkah 2. Buat repository
+
+1. Tekan **+** di pojok kanan atas, lalu **New repository**.
+2. Isi nama `catatduit`, pilih **Private** (supaya hanya kamu yang lihat), lalu **Create repository**.
+
+## Langkah 3. Ekstrak zip di HP
+
+Buka aplikasi **Files** (atau File Manager), tekan `catatduit-cloud.zip`, lalu pilih **Ekstrak**. Hasilnya 8 file:
+`Main.kt`, `index.html`, `icon-512.png`, `AndroidManifest.xml`, `app.gradle.kts`, `build.gradle.kts`, `settings.gradle.kts`, `gradle.properties`.
+
+## Langkah 4. Unggah 8 file
+
+1. Di halaman repository, tekan **uploading an existing file** (atau **Add file**, lalu **Upload files**).
+2. Pilih **semua 8 file** sekaligus dari folder hasil ekstrak.
+3. Tunggu selesai, lalu tekan **Commit changes**.
+
+## Langkah 5. Buat file otomatis pembuat APK
+
+1. Tekan **Add file**, lalu **Create new file**.
+2. Di kolom nama, ketik persis: `.github/workflows/build.yml`
+   (saat mengetik tanda `/`, GitHub otomatis membuat folder).
+3. Tempel isi berikut ke kotak besar:
+
+```yaml
+name: Build APK
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Susun struktur proyek
+        run: |
+          mkdir -p app/src/main/java/com/catatduit/app app/src/main/assets app/src/main/res/mipmap-xxxhdpi
+          cp Main.kt app/src/main/java/com/catatduit/app/Main.kt
+          cp AndroidManifest.xml app/src/main/AndroidManifest.xml
+          cp index.html app/src/main/assets/index.html
+          cp icon-512.png app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
+          cp app.gradle.kts app/build.gradle.kts
+      - name: Build
+        run: gradle assembleDebug --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: CatatDuit-APK
+          path: app/build/outputs/apk/debug/app-debug.apk
+```
+
+4. Tekan **Commit changes**, lalu **Commit** lagi. Build langsung berjalan.
+
+## Langkah 6. Unduh APK
+
+1. Buka tab **Actions** di repository. Tunggu sekitar 3 sampai 6 menit sampai ada tanda ✅ hijau.
+2. Tekan nama build-nya, lalu gulir ke bagian **Artifacts** di bawah.
+3. Tekan **CatatDuit-APK** untuk mengunduh (berbentuk zip). Ekstrak di **Files**, dan di dalamnya ada `app-debug.apk`.
+
+## Langkah 7. Pasang dan beri izin
+
+1. Tekan `app-debug.apk`, lalu izinkan **pasang dari sumber ini** bila diminta.
+2. Buka CatatDuit. Saat muncul dialog **Izinkan akses notifikasi**, tekan **Buka pengaturan** dan aktifkan CatatDuit.
+3. **Android 13 ke atas:** kalau tombolnya abu-abu atau muncul "Pengaturan dibatasi", buka **Info aplikasi CatatDuit**, tekan ⋮ di pojok kanan atas, pilih **Izinkan pengaturan terbatas**, lalu ulangi langkah 2.
+4. Buka **Info aplikasi, Baterai**, lalu pilih **Tidak dibatasi**. Di HP Xiaomi, Oppo, Vivo, atau Realme, aktifkan juga **Mulai otomatis**.
+
+## Langkah 8. Uji dan sesuaikan (penting)
+
+Tanpa laptop, kita pakai menu uji bawaan aplikasi:
+
+1. Terima uang kecil (misalnya Rp1.000) di DANA atau GoPay.
+2. Buka CatatDuit, lalu **ikon pengaturan** di pojok kanan atas, dan tekan **Uji: lihat notifikasi terbaca**.
+3. Di kotak teks akan muncul **nama paket** dan **teks notifikasi** yang tertangkap.
+4. Kalau nama paketnya berbeda dari yang ada di kode (`id.dana`, `com.gojek.app`, `com.gojek.gopay`), atau kata kuncinya tidak cocok ("menerima", "diterima", dll.), kirim hasil tampilan itu ke aku. Aku sesuaikan kodenya.
+5. Kamu juga bisa mengubahnya sendiri: di GitHub buka `Main.kt`, tekan ikon ✏️, ubah daftar `apps` atau `inKw`, lalu **Commit changes**. Build akan jalan lagi, dan kamu tinggal mengunduh APK terbaru seperti di langkah 6.
+
+Kalau transaksi sudah masuk otomatis, akan muncul di Riwayat dengan keterangan `Otomatis · DANA` atau `Otomatis · GoPay`.
+
+## Catatan penting
+
+- **Menu uji menyimpan sementara.** Menu uji menyimpan 12 notifikasi terakhir yang memuat "Rp" dari **aplikasi apa pun** (termasuk aplikasi bank), hanya di HP kamu. Setelah selesai menyesuaikan kode, kamu bisa memintaku menghapus fitur ini.
+- **Data terpisah.** Data di APK tidak terhubung dengan versi web. Untuk memindahkan data lama, pakai **Backup & ekspor** di versi lama, lalu **Pulihkan** di APK.
+- **Saldo bisa minus.** Transaksi otomatis tidak melewati pengecekan saldo. Kalau ada yang salah baca, hapus saja dari Riwayat.
+- **Pembaruan.** Setiap kali kamu mengunggah ulang file ke GitHub, APK baru otomatis dibuat.
+- **Bukan untuk Play Store.** Ini APK debug untuk pemakaian pribadi.
